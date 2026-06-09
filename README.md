@@ -224,7 +224,7 @@ Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
 
 ## 📞 Contato
 
-**Autor:** João Pedro
+**Autor:** João Paulo Lima
 **Email:** jp255ft@gmail.com
 **LinkedIn:** [João Paulo Lima](https://www.linkedin.com/in/joão-paulo-lima-620a74237)
 
