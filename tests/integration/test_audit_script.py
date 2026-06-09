@@ -59,6 +59,7 @@ def test_audit_script_invalid_arg():
     result = _run_bash(SCRIPT_PATH, "--invalid-flag")
     assert result.returncode != 0
     assert "Unknown" in result.stdout or "Unknown" in result.stderr
+    assert "Usage" in result.stdout or "Usage" in result.stderr
 
 
 @pytest.mark.integration

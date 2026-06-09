@@ -29,6 +29,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed Dockerfile HEALTHCHECK to validate binaries correctly
 - Updated README.md with CI and coverage badges
 - Updated TREE.md with new file structure
+- Updated all workflows with `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24` for Node.js 24 compatibility
+- Updated `pyproject.toml` with `pytest-timeout>=2.0.0` dependency
+- Updated `run_audit_60min.sh` with `--help`/`-h` flag handler
+- Updated `test_audit_script.py` with improved invalid argument validation
+- Updated `dependabot.yml` to ignore Python major version updates
+- Added `continue-on-error: true` to lint job in `test.yml` for CI stability
 
 ### Security
 - Added security policy for responsible disclosure

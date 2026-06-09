@@ -12,6 +12,7 @@ on:
     - cron: '0 6 * * 1'  # Every Monday at 6:00 UTC
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   PYTHON_VERSION: '3.11'
   SEMGREP_VERSION: '1.60.0'
   TRIVY_VERSION: '0.50.0'

@@ -16,6 +16,15 @@ TARGET_DIR="${PROJECT_DIR}"
 # Parse arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
+        --help|-h)
+            echo "Usage: $0 [--output-dir DIR] [--target PATH]"
+            echo ""
+            echo "Options:"
+            echo "  --output-dir DIR   Output directory for audit results (default: audits/outputs/<timestamp>)"
+            echo "  --target PATH      Target directory to audit (default: project root)"
+            echo "  --help, -h         Show this help message"
+            exit 0
+            ;;
         --output-dir)
             OUTPUT_DIR="$2"
             shift 2
@@ -25,7 +34,7 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         *)
-            echo "Unknown option: $1"
+            echo "Unknown: $1"
             echo "Usage: $0 [--output-dir DIR] [--target PATH]"
             exit 1
             ;;

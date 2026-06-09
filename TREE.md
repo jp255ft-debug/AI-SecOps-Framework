@@ -46,6 +46,8 @@ AI-SecOps-Framework/
 │   │   ├── 0002-semgrep-for-sast.md
 │   │   ├── 0003-trivy-for-sca.md
 │   │   └── 0004-pytest-framework.md
+│   ├── reports/
+│   │   └── daily-report-2026-06-08.md  # Relatório diário 08/06
 │   └── architecture/
 │       ├── overview.md            # Visão geral da arquitetura
 │       ├── system-context.mermaid # Diagrama C4 de contexto
