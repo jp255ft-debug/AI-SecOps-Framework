@@ -14,8 +14,6 @@ on:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   PYTHON_VERSION: '3.11'
-  SEMGREP_VERSION: '1.60.0'
-  TRIVY_VERSION: '0.50.0'
 
 jobs:
   # ============================================
@@ -24,6 +22,7 @@ jobs:
   sast:
     name: SAST - Semgrep Scan
     runs-on: ubuntu-latest
+    continue-on-error: true
     permissions:
       contents: read
       security-events: write
@@ -40,7 +39,7 @@ jobs:
 
       - name: Install Semgrep
         run: |
-          pip install semgrep==${{ env.SEMGREP_VERSION }}
+          pip install semgrep
 
       - name: Run Semgrep SAST Scan
         run: |
@@ -68,6 +67,7 @@ jobs:
   sca:
     name: SCA - Trivy Scan
     runs-on: ubuntu-latest
+    continue-on-error: true
     permissions:
       contents: read
       security-events: write

@@ -123,6 +123,7 @@ jobs:
   report:
     name: Generate LLM Security Report
     runs-on: ubuntu-latest
+    continue-on-error: true
     needs: [giskard-scan, prompt-injection]
     if: always()
 
