@@ -226,7 +226,7 @@ Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
 
 **Autor:** João Pedro
 **Email:** jp255ft@gmail.com
-**LinkedIn:** [João Pedro](https://linkedin.com/in/jp255ft)
+**LinkedIn:** [João Paulo Lima](https://www.linkedin.com/in/joão-paulo-lima-620a74237)
 
 ---
 
