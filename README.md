@@ -224,9 +224,9 @@ Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
 
 ## 📞 Contato
 
-**Autor:** Seu Nome
-**Email:** seu.email@exemplo.com
-**LinkedIn:** [Seu Perfil](https://linkedin.com/in/seu-perfil)
+**Autor:** João Pedro
+**Email:** jp255ft@gmail.com
+**LinkedIn:** [João Pedro](https://linkedin.com/in/jp255ft)
 
 ---
 
