@@ -1,0 +1,213 @@
+# Secure CI Workflow - AI-SecOps-Framework
+# Automated security scanning pipeline for LLM/ML projects
+# Triggers: push, pull_request, schedule (weekly)
+name: Secure CI Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * 1'  # Every Monday at 6:00 UTC
+
+env:
+  PYTHON_VERSION: '3.11'
+  SEMGREP_VERSION: '1.60.0'
+  TRIVY_VERSION: '0.50.0'
+
+jobs:
+  # ============================================
+  # Job 1: SAST - Semgrep
+  # ============================================
+  sast:
+    name: SAST - Semgrep Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Semgrep
+        run: |
+          pip install semgrep==${{ env.SEMGREP_VERSION }}
+
+      - name: Run Semgrep SAST Scan
+        run: |
+          semgrep --config config/semgrep/custom_rules.yaml \
+                  --json \
+                  --output semgrep_results.json \
+                  --error \
+                  . || true
+
+      - name: Upload Semgrep Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-results
+          path: semgrep_results.json
+
+      - name: Display Summary
+        run: |
+          if [ -f semgrep_results.json ]; then
+            python3 -c "
+import json
+with open('semgrep_results.json') as f:
+    data = json.load(f)
+results = data.get('results', [])
+print(f'Semgrep found {len(results)} findings')
+for r in results:
+    path = r.get('path', 'unknown')
+    line = r.get('start', {}).get('line', '?')
+    sev = r.get('extra', {}).get('severity', 'INFO')
+    msg = r.get('extra', {}).get('message', 'No message')
+    print(f'  [{sev}] {path}:{line} - {msg}')
+"
+          fi
+
+  # ============================================
+  # Job 2: SCA - Trivy
+  # ============================================
+  sca:
+    name: SCA - Trivy Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Trivy Filesystem Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'json'
+          output: 'trivy_results.json'
+          scanners: 'vuln,secret,misconfig'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-results
+          path: trivy_results.json
+
+      - name: Display Summary
+        run: |
+          if [ -f trivy_results.json ]; then
+            python3 -c "
+import json
+with open('trivy_results.json') as f:
+    data = json.load(f)
+total = 0
+for result in data.get('Results', []):
+    for vuln in result.get('Vulnerabilities', []):
+        total += 1
+print(f'Trivy found {total} vulnerabilities')
+"
+          fi
+
+  # ============================================
+  # Job 3: Secrets Scan - Gitleaks
+  # ============================================
+  secrets:
+    name: Secrets - Gitleaks Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ============================================
+  # Job 4: Dependency Review
+  # ============================================
+  dependency-review:
+    name: Dependencies - Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+
+  # ============================================
+  # Job 5: Report Generation
+  # ============================================
+  report:
+    name: Generate Security Report
+    runs-on: ubuntu-latest
+    needs: [sast, sca, secrets]
+    if: always()
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Generate Consolidated Report
+        run: |
+          mkdir -p report
+          cat > report/CI_SECURITY_REPORT.md << 'EOF'
+# CI Security Scan Report
+
+**Repository:** ${{ github.repository }}
+**Branch:** ${{ github.ref_name }}
+**Commit:** ${{ github.sha }}
+**Trigger:** ${{ github.event_name }}
+**Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+
+---
+
+## Scan Results
+
+| Job | Status | Details |
+|-----|--------|---------|
+| SAST (Semgrep) | ${{ needs.sast.result }} | See artifacts/semgrep-results |
+| SCA (Trivy) | ${{ needs.sca.result }} | See artifacts/trivy-results |
+| Secrets (Gitleaks) | ${{ needs.secrets.result }} | See artifacts/gitleaks-results |
+
+---
+
+## Summary
+
+- **SAST Findings:** $(cat artifacts/semgrep-results/semgrep_results.json 2>/dev/null | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d.get('results',[])))" 2>/dev/null || echo "N/A")
+- **Vulnerabilities:** $(cat artifacts/trivy-results/trivy_results.json 2>/dev/null | python3 -c "import json,sys; d=json.load(sys.stdin); print(sum(len(r.get('Vulnerabilities',[])) for r in d.get('Results',[])))" 2>/dev/null || echo "N/A")
+
+---
+
+*Generated by AI-SecOps-Framework Secure CI Pipeline*
+EOF
+
+      - name: Upload Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: report/CI_SECURITY_REPORT.md

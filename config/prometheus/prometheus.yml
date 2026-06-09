@@ -1,0 +1,29 @@
+# Prometheus Configuration - AI-SecOps-Framework
+# Scrapes metrics from OpenTelemetry Collector and application
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+# Rule files
+rule_files: []
+
+# Scrape configurations
+scrape_configs:
+  # OpenTelemetry Collector metrics
+  - job_name: 'otel-collector'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['otel-collector:8888']
+
+  # Application metrics (direct)
+  - job_name: 'ai-secops-framework'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['localhost:8000']
+    metrics_path: '/metrics'

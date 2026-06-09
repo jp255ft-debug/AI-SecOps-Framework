@@ -1,0 +1,6 @@
+# REGRAS MESTRES DO CLINE
+1. VOCÊ ESTÁ PROIBIDO DE INICIAR QUALQUER TAREFA SEM LER O `.ai/project_context.md`.
+2. AO OPERAR NO MODO 'PLAN' (CLAUDE): Leia e siga estritamente `.ai/claude_plan_rules.md`. Desenhe arquitetura e passos lógicos. Não escreva código executável.
+3. AO OPERAR NO MODO 'ACT' (DEEPSEEK): Leia e siga estritamente `.ai/deepseek_act_rules.md`. Escreva código exato, limpo e testável baseado no plano.
+4. ZERO ALUCINAÇÃO: Não invente flags CLI (Trivy, Semgrep, Promptfoo). Se não tiver certeza, use suas ferramentas para ler a documentação oficial antes de codificar.
+5. MANUTENÇÃO DO TREE.md: Sempre que criar ou remover arquivos no projeto, atualize o `TREE.md` para refletir a nova estrutura. Mantenha a hierarquia, comentários descritivos e ordem alfabética dentro de cada seção.

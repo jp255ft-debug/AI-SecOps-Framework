@@ -1,0 +1,88 @@
+# OpenTelemetry Stack for AI-SecOps-Framework
+# Provides local observability: tracing (Jaeger), metrics (Prometheus), dashboards (Grafana)
+# Usage: docker compose -f docker-compose.otel.yml up -d
+version: '3.8'
+
+services:
+  # ============================================
+  # Jaeger - Distributed Tracing
+  # ============================================
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: ai-secops-jaeger
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "4317:4317"    # OTLP gRPC
+      - "4318:4318"    # OTLP HTTP
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+    networks:
+      - observability
+    restart: unless-stopped
+
+  # ============================================
+  # Prometheus - Metrics Storage
+  # ============================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ai-secops-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - observability
+    restart: unless-stopped
+
+  # ============================================
+  # Grafana - Dashboards
+  # ============================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ai-secops-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana-dashboards:/etc/grafana/provisioning/dashboards
+    networks:
+      - observability
+    restart: unless-stopped
+
+  # ============================================
+  # OpenTelemetry Collector (optional)
+  # ============================================
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: ai-secops-otel-collector
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8888:8888"   # Prometheus metrics
+      - "8889:8889"   # Health check
+    volumes:
+      - ./config/otel-collector.yml:/etc/otel-collector-config.yml
+    command:
+      - '--config=/etc/otel-collector-config.yml'
+    networks:
+      - observability
+    restart: unless-stopped
+
+networks:
+  observability:
+    driver: bridge
+
+volumes:
+  prometheus_data:
+  grafana_data:

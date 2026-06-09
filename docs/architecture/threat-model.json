@@ -1,0 +1,134 @@
+[
+  {
+    "id": "T001",
+    "category": "Spoofing",
+    "description": "Attacker spoofs LLM API responses to inject malicious content into the application",
+    "affected_component": "LLM API Client (openai, anthropic)",
+    "severity": "High",
+    "likelihood": "Low",
+    "mitigation": "Use TLS pinning, verify API certificates, implement response validation with NeMo Guardrails",
+    "owasp_llm": "LLM02",
+    "status": "Partial"
+  },
+  {
+    "id": "T002",
+    "category": "Tampering",
+    "description": "Attacker tampers with audit reports in storage to hide vulnerabilities",
+    "affected_component": "audits/outputs/",
+    "severity": "Medium",
+    "likelihood": "Low",
+    "mitigation": "Generate cryptographic signatures (HMAC-SHA256) for reports, use git for audit trail",
+    "owasp_llm": "N/A",
+    "status": "Not Addressed"
+  },
+  {
+    "id": "T003",
+    "category": "Tampering",
+    "description": "Attacker modifies Semgrep rules to suppress vulnerability detection",
+    "affected_component": "config/semgrep/custom_rules.yaml",
+    "severity": "High",
+    "likelihood": "Low",
+    "mitigation": "Code review on rule changes, sign rules with GPG, CI validation of rule integrity",
+    "owasp_llm": "N/A",
+    "status": "Not Addressed"
+  },
+  {
+    "id": "T004",
+    "category": "Repudiation",
+    "description": "User denies running malicious audit command or accessing sensitive results",
+    "affected_component": "CLI (guardrails/cli.py)",
+    "severity": "Low",
+    "likelihood": "Low",
+    "mitigation": "Implement audit logging to syslog/CloudWatch, log all CLI invocations with user identity",
+    "owasp_llm": "N/A",
+    "status": "Not Addressed"
+  },
+  {
+    "id": "T005",
+    "category": "Information Disclosure",
+    "description": "Prompt injection causes LLM to leak training data, system prompts, or sensitive business logic",
+    "affected_component": "LLM API Calls",
+    "severity": "Critical",
+    "likelihood": "High",
+    "mitigation": "NeMo Guardrails input validation, Semgrep rules for prompt injection (LLM01), output sanitization",
+    "owasp_llm": "LLM01",
+    "status": "Mitigated"
+  },
+  {
+    "id": "T006",
+    "category": "Information Disclosure",
+    "description": "Secrets (API keys, tokens) leaked in audit reports or logs",
+    "affected_component": "audits/outputs/*.md, logs",
+    "severity": "Critical",
+    "likelihood": "Medium",
+    "mitigation": "Gitleaks scanning in CI, output sanitization in report generator, .gitignore for outputs/",
+    "owasp_llm": "LLM06",
+    "status": "Mitigated"
+  },
+  {
+    "id": "T007",
+    "category": "Information Disclosure",
+    "description": "Sensitive data included in LLM prompts sent to external API providers",
+    "affected_component": "LLM API Client",
+    "severity": "Critical",
+    "likelihood": "Medium",
+    "mitigation": "Semgrep rule llm-sensitive-data-in-prompt (LLM06), input sanitization, data classification",
+    "owasp_llm": "LLM06",
+    "status": "Mitigated"
+  },
+  {
+    "id": "T008",
+    "category": "Denial of Service",
+    "description": "Unbounded input causes LLM API cost explosion or resource exhaustion",
+    "affected_component": "LLM API Client",
+    "severity": "High",
+    "likelihood": "Medium",
+    "mitigation": "Input length limits (4096 chars), rate limiting, cost monitoring, Semgrep rule llm-dos-unbounded-input",
+    "owasp_llm": "LLM04",
+    "status": "Partial"
+  },
+  {
+    "id": "T009",
+    "category": "Denial of Service",
+    "description": "Malicious payload causes Semgrep or Trivy to crash during audit",
+    "affected_component": "scripts/run_audit_60min.sh",
+    "severity": "Medium",
+    "likelihood": "Low",
+    "mitigation": "Timeouts on all tool executions, graceful error handling, resource limits in Docker",
+    "owasp_llm": "N/A",
+    "status": "Partial"
+  },
+  {
+    "id": "T010",
+    "category": "Elevation of Privilege",
+    "description": "LLM agent executes privileged commands (shell, filesystem) without authorization",
+    "affected_component": "LLM Tool Functions (@tool decorators)",
+    "severity": "Critical",
+    "likelihood": "High",
+    "mitigation": "Semgrep rules for @tool validation (LLM07), require human-in-the-loop (LLM08), sandbox execution",
+    "owasp_llm": "LLM07, LLM08",
+    "status": "Mitigated"
+  },
+  {
+    "id": "T011",
+    "category": "Elevation of Privilege",
+    "description": "LLM endpoint exposed without authentication allows model theft",
+    "affected_component": "LLM API Endpoints",
+    "severity": "High",
+    "likelihood": "Medium",
+    "mitigation": "Semgrep rule llm-model-theft-exposed-endpoint (LLM10), API key authentication, rate limiting",
+    "owasp_llm": "LLM10",
+    "status": "Mitigated"
+  },
+  {
+    "id": "T012",
+    "category": "Elevation of Privilege",
+    "description": "Dependency confusion attack installs malicious package during pip install",
+    "affected_component": "requirements.txt, pyproject.toml",
+    "severity": "High",
+    "likelihood": "Medium",
+    "mitigation": "Pin dependency versions, use --require-hashes, Dependabot alerts, Trivy scanning",
+    "owasp_llm": "LLM05",
+    "status": "Mitigated"
+  }
+]

@@ -1,0 +1,328 @@
+# custom_rules.yaml - AI-SecOps-Framework
+# Custom Semgrep rules for LLM/ML security scanning
+# Mapped against OWASP Top 10 for LLM Applications (2025)
+
+rules:
+  # ============================================
+  # LLM01: Prompt Injection
+  # ============================================
+  - id: llm-prompt-injection-direct
+    pattern-either:
+      - pattern: |
+          $LLM.invoke("...")
+      - pattern: |
+          $LLM.predict("...")
+      - pattern: |
+          $LLM.generate(["...", ...])
+    message: >
+      Potential direct prompt injection detected.
+      User input should be sanitized before being passed to LLM.
+      Consider using input validation or guardrails.
+    severity: HIGH
+    languages:
+      - python
+    metadata:
+      cwe: "CWE-77: Improper Neutralization of Special Elements"
+      owasp-llm: "LLM01: Prompt Injection"
+      category: security
+
+  - id: llm-prompt-injection-format-string
+    patterns:
+      - pattern-either:
+          - pattern: |
+              $PROMPT = f"...{$INPUT}..."
+          - pattern: |
+              $PROMPT = "...".format($INPUT)
+          - pattern: |
+              $PROMPT = "... %s ..." % $INPUT
+      - pattern: |
+          $LLM.$METHOD($PROMPT)
+    message: >
+      User input is being interpolated into an LLM prompt without sanitization.
+      This can lead to prompt injection attacks.
+      Use a structured prompt template with input validation.
+    severity: HIGH
+    languages:
+      - python
+    metadata:
+      cwe: "CWE-77: Improper Neutralization of Special Elements"
+      owasp-llm: "LLM01: Prompt Injection"
+      category: security
+
+  # ============================================
+  # LLM02: Insecure Output Handling
+  # ============================================
+  - id: llm-insecure-output-exec
+    patterns:
+      - pattern: |
+          $RESULT = $LLM.$METHOD(...)
+      - pattern-not: |
+          $RESULT = $LLM.$METHOD(...)
+      - pattern-either:
+          - pattern: |
+              exec($RESULT)
+          - pattern: |
+              eval($RESULT)
+          - pattern: |
+              subprocess.run($RESULT, ...)
+          - pattern: |
+              os.system($RESULT)
+    message: >
+      LLM output is being executed directly without sanitization.
+      This can lead to remote code execution (RCE) if the LLM output is malicious.
+      Validate and sanitize LLM outputs before execution.
+    severity: CRITICAL
+    languages:
+      - python
+    metadata:
+      cwe: "CWE-94: Improper Control of Generation of Code"
+      owasp-llm: "LLM02: Insecure Output Handling"
+      category: security
+
+  - id: llm-insecure-output-sql
+    patterns:
+      - pattern: |
+          $RESULT = $LLM.$METHOD(...)
+      - pattern-either:
+          - pattern: |
+              cursor.execute($RESULT)
+          - pattern: |
+              db.execute($RESULT)
+          - pattern: |
+              $CONN.execute($RESULT)
+    message: >
+      LLM output is being used in a SQL query without sanitization.
+      This can lead to SQL injection attacks.
+      Use parameterized queries or validate LLM output before database operations.
+    severity: CRITICAL
+    languages:
+      - python
+    metadata:
+      cwe: "CWE-89: SQL Injection"
+      owasp-llm: "LLM02: Insecure Output Handling"
+      category: security
+
+  # ============================================
+  # LLM03: Training Data Poisoning
+  # ============================================
+  - id: llm-data-poisoning-unvalidated
+    patterns:
+      - pattern: |
+          $MODEL.train($DATA)
+      - pattern-not-inside: |
+          if validate($DATA):
+              ...
+      - pattern-not-inside: |
+          if sanitize($DATA):
+              ...
+    message: >
+      Training data is being used without validation.
+      Unvalidated training data can lead to data poisoning attacks.
+      Implement data validation and sanitization before training.
+    severity: MEDIUM
+    languages:
+      - python
+    metadata:
+      cwe: "CWE-20: Improper Input Validation"
+      owasp-llm: "LLM03: Training Data Poisoning"
+      category: security
+
+  # ============================================
+  # LLM04: Model Denial of Service
+  # ============================================
+  - id: llm-dos-unbounded-input
+    patterns:
+      - pattern: |
+          $LLM.$METHOD($INPUT)
+      - pattern-not-inside: |
+          if len($INPUT) < $LIMIT:
+              ...
+      - pattern-not-inside: |
+          if len($INPUT) <= $LIMIT:
+              ...
+    message: >
+      LLM input is not bounded in size.
+      Unbounded inputs can lead to denial of service via resource exhaustion.
+      Implement input length limits and rate limiting.
+    severity: MEDIUM
+    languages:
+      - python
+    metadata:
+      cwe: "CWE-770: Allocation of Resources Without Limits"
+      owasp-llm: "LLM04: Model Denial of Service"
+      category: security
+
+  # ============================================
+  # LLM05: Supply Chain Vulnerabilities
+  # ============================================
+  - id: llm-supply-chain-unpinned-dep
+    patterns:
+      - pattern: |
+          pip install $PACKAGE
+      - pattern-not: |
+          pip install $PACKAGE==$VERSION
+    message: >
+      Python package is installed without pinning the version.
+      This can lead to supply chain attacks via dependency confusion.
+      Always pin package versions in requirements.txt.
+    severity: MEDIUM
+    languages:
+      - python
+      - dockerfile
+    metadata:
+      cwe: "CWE-1104: Use of Unmaintained Third-Party Components"
+      owasp-llm: "LLM05: Supply Chain Vulnerabilities"
+      category: security
+
+  # ============================================
+  # LLM06: Sensitive Information Disclosure
+  # ============================================
+  - id: llm-sensitive-data-in-prompt
+    patterns:
+      - pattern: |
+          $PROMPT = "..."
+      - pattern-either:
+          - pattern: |
+              $PROMPT = f"...{API_KEY}..."
+          - pattern: |
+              $PROMPT = f"...{SECRET}..."
+          - pattern: |
+              $PROMPT = f"...{PASSWORD}..."
+          - pattern: |
+              $PROMPT = f"...{TOKEN}..."
+    message: >
+      Sensitive information (API keys, secrets, passwords) is being included
+      in LLM prompts. This can lead to sensitive data disclosure.
+      Never include credentials in prompts sent to external LLMs.
+    severity: CRITICAL
+    languages:
+      - python
+    metadata:
+      cwe: "CWE-200: Exposure of Sensitive Information"
+      owasp-llm: "LLM06: Sensitive Information Disclosure"
+      category: security
+
+  # ============================================
+  # LLM07: Insecure Plugin Design
+  # ============================================
+  - id: llm-insecure-plugin-tool
+    patterns:
+      - pattern: |
+          @tool
+          def $FUNC($PARAMS):
+              ...
+      - pattern-not-inside: |
+          @tool
+          def $FUNC($PARAMS):
+              ...
+              if validate(...):
+                  ...
+    message: >
+      LLM tool/plugin function lacks input validation.
+      Malicious inputs to tools can lead to unauthorized actions.
+      Add input validation and authorization checks to all tool functions.
+    severity: HIGH
+    languages:
+      - python
+    metadata:
+      cwe: "CWE-20: Improper Input Validation"
+      owasp-llm: "LLM07: Insecure Plugin Design"
+      category: security
+
+  # ============================================
+  # LLM08: Excessive Agency
+  # ============================================
+  - id: llm-excessive-agency-auto-confirm
+    patterns:
+      - pattern: |
+          $AGENT.run($INPUT, auto_confirm=True)
+      - pattern: |
+          $AGENT.execute($INPUT, confirm=False)
+    message: >
+      LLM agent is configured with auto-confirm enabled.
+      This gives the LLM excessive agency to execute actions without human oversight.
+      Require human-in-the-loop confirmation for destructive actions.
+    severity: HIGH
+    languages:
+      - python
+    metadata:
+      cwe: "CWE-862: Missing Authorization"
+      owasp-llm: "LLM08: Excessive Agency"
+      category: security
+
+  # ============================================
+  # LLM09: Overreliance
+  # ============================================
+  - id: llm-overreliance-no-validation
+    patterns:
+      - pattern: |
+          $RESULT = $LLM.$METHOD(...)
+      - pattern: |
+          return $RESULT
+      - pattern-not-inside: |
+          if validate($RESULT):
+              ...
+    message: >
+      LLM output is being returned without validation.
+      Overreliance on LLM outputs without verification can lead to incorrect decisions.
+      Implement output validation and fact-checking.
+    severity: MEDIUM
+    languages:
+      - python
+    metadata:
+      cwe: "CWE-1048: Invokable Access Control Element"
+      owasp-llm: "LLM09: Overreliance"
+      category: security
+
+  # ============================================
+  # LLM10: Model Theft
+  # ============================================
+  - id: llm-model-theft-exposed-endpoint
+    patterns:
+      - pattern-either:
+          - pattern: |
+              @app.route("$ROUTE", methods=["POST"])
+              def $FUNC():
+                  return $LLM.$METHOD(request.json)
+          - pattern: |
+              @app.post("$ROUTE")
+              def $FUNC():
+                  return $LLM.$METHOD(request.json)
+      - pattern-not-inside: |
+          if authenticate(request):
+              ...
+    message: >
+      LLM endpoint is exposed without authentication.
+      This can lead to model theft via unauthorized API access.
+      Implement authentication and rate limiting on all LLM endpoints.
+    severity: HIGH
+    languages:
+      - python
+    metadata:
+      cwe: "CWE-306: Missing Authentication"
+      owasp-llm: "LLM10: Model Theft"
+      category: security
+
+  # ============================================
+  # General Security Rules
+  # ============================================
+  - id: hardcoded-api-key
+    patterns:
+      - pattern-either:
+          - pattern: |
+              $KEY = "sk-..."
+          - pattern: |
+              $KEY = "sk-proj-..."
+          - pattern: |
+              os.environ["OPENAI_API_KEY"] = "..."
+      - pattern-not: |
+          $KEY = os.environ.get("...")
+    message: >
+      Hardcoded API key detected.
+      API keys should be stored in environment variables or secret managers.
+    severity: CRITICAL
+    languages:
+      - python
+    metadata:
+      cwe: "CWE-798: Use of Hard-coded Credentials"
+      category: security

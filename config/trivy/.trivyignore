@@ -1,0 +1,27 @@
+# .trivyignore - AI-SecOps-Framework
+# Trivy vulnerability ignore list
+# Format: <vulnerability-id> [optional comment]
+
+# ============================================
+# Accepted Risk - Development Dependencies
+# ============================================
+
+# These are development-only dependencies with no production impact.
+# Accepted by: Security Team
+# Date: 2025-01-01
+
+# ============================================
+# False Positives
+# ============================================
+
+# These are false positives that do not apply to our usage context.
+# Verified by: Security Team
+# Date: 2025-01-01
+
+# ============================================
+# Temporarily Ignored (SLA in progress)
+# ============================================
+
+# These vulnerabilities have been acknowledged and are being addressed.
+# Expected fix date: YYYY-MM-DD
+# Ticket: JIRA-XXX

@@ -1,0 +1,49 @@
+# Continuous Fuzzing Workflow - AI-SecOps-Framework
+# Runs fuzz tests daily to discover edge cases and crashes
+name: Continuous Fuzzing
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # 2 AM UTC daily
+  workflow_dispatch:  # Manual trigger
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  fuzz:
+    name: Fuzz Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install atheris
+          pip install -e .
+
+      - name: Run fuzzing (30 min)
+        run: |
+          python -m tests.fuzz.test_interceptor_fuzz -max_total_time=1800
+        continue-on-error: true  # Don't fail CI on fuzz crashes
+
+      - name: Upload crash artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-crashes
+          path: crash-*
+          retention-days: 7
+
+      - name: Run basic fuzz tests (always)
+        run: |
+          python -m pytest tests/fuzz/ -v --timeout=60

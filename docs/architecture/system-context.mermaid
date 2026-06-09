@@ -1,0 +1,43 @@
+graph TB
+    User[👤 Security Engineer] -->|Run audit| CLI[ai-secops-audit CLI]
+    CLI --> Orchestrator[Audit Orchestrator]
+    
+    Orchestrator --> SAST[Semgrep SAST]
+    Orchestrator --> SCA[Trivy SCA]
+    Orchestrator --> LLMSec[LLM Security Tests]
+    Orchestrator --> Guardrails[Runtime Guardrails]
+    
+    SAST -->|13 OWASP Rules| Results[Results Aggregator]
+    SCA -->|CVE Database| Results
+    LLMSec -->|Giskard + Promptfoo| Results
+    Guardrails -->|NeMo Validation| Results
+    
+    Results --> Report[Markdown Report Generator]
+    Report -->|Executive + Technical| Output[📄 Audit Report]
+    
+    subgraph CI/CD Pipeline
+        CI[GitHub Actions] --> SAST
+        CI --> SCA
+        CI --> Secrets[Gitleaks Secrets Scan]
+        CI --> DepReview[Dependency Review]
+    end
+    
+    subgraph Supply Chain
+        SBOM[SBOM Generator] -->|CycloneDX + SPDX| Sigstore[Sigstore Signing]
+        Scorecard[OpenSSF Scorecard] -->|Security Score| Badge[Badge]
+    end
+    
+    subgraph Observability
+        OTel[OpenTelemetry] -->|Traces + Metrics| Jaeger[Jaeger]
+        OTel -->|Metrics| Prometheus[Prometheus]
+        Prometheus --> Grafana[Grafana Dashboards]
+    end
+    
+    style SAST fill:#ff6b6b,color:#fff
+    style SCA fill:#4ecdc4,color:#fff
+    style LLMSec fill:#ffe66d,color:#333
+    style Guardrails fill:#a8dadc,color:#333
+    style CI fill:#6c5ce7,color:#fff
+    style SBOM fill:#00b894,color:#fff
+    style Sigstore fill:#e17055,color:#fff
+    style OTel fill:#0984e3,color:#fff

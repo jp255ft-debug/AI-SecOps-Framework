@@ -1,0 +1,24 @@
+# Default owner for all files
+* @jp255ft-debug
+
+# Security-critical files
+SECURITY.md @jp255ft-debug
+.github/SECURITY.md @jp255ft-debug
+.github/workflows/secure-ci.yml @jp255ft-debug
+.github/workflows/llm-eval.yml @jp255ft-debug
+
+# Core modules
+guardrails/ @jp255ft-debug
+scripts/ @jp255ft-debug
+
+# Configuration
+config/semgrep/ @jp255ft-debug
+config/trivy/ @jp255ft-debug
+
+# Tests
+tests/ @jp255ft-debug
+
+# Documentation
+README.md @jp255ft-debug
+CONTRIBUTING.md @jp255ft-debug
+CHANGELOG.md @jp255ft-debug

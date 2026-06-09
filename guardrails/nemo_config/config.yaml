@@ -1,0 +1,43 @@
+# config.yaml - AI-SecOps-Framework
+# NeMo Guardrails configuration for LLM runtime protection
+# Reference: https://github.com/NVIDIA/NeMo-Guardrails
+
+# Model configuration
+models:
+  - type: main
+    engine: openai
+    model: gpt-4
+
+  - type: guardrails
+    engine: openai
+    model: gpt-3.5-turbo
+
+# Input rails configuration
+rails:
+  input:
+    flows:
+      - self_check_input
+      - check_jailbreak
+      - check_system_override
+
+  output:
+    flows:
+      - self_check_output
+      - check_sensitive_data
+      - check_code_execution
+
+  dialog:
+    flows:
+      - general_qa
+      - security_incident_response
+
+# Colang configuration file
+colang_file: "rails.co"
+
+# Active configuration
+active_config: default
+
+# Logging
+logging:
+  level: INFO
+  path: logs/guardrails.log
