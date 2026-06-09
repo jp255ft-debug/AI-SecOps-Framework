@@ -59,19 +59,7 @@ jobs:
       - name: Display Summary
         run: |
           if [ -f semgrep_results.json ]; then
-            python3 -c "
-import json
-with open('semgrep_results.json') as f:
-    data = json.load(f)
-results = data.get('results', [])
-print(f'Semgrep found {len(results)} findings')
-for r in results:
-    path = r.get('path', 'unknown')
-    line = r.get('start', {}).get('line', '?')
-    sev = r.get('extra', {}).get('severity', 'INFO')
-    msg = r.get('extra', {}).get('message', 'No message')
-    print(f'  [{sev}] {path}:{line} - {msg}')
-"
+            python3 -c "import json; data=json.load(open('semgrep_results.json')); results=data.get('results',[]); print(f'Semgrep found {len(results)} findings'); [print(f'  [{r.get(\"extra\",{}).get(\"severity\",\"INFO\")}] {r.get(\"path\",\"unknown\")}:{r.get(\"start\",{}).get(\"line\",\"?\")} - {r.get(\"extra\",{}).get(\"message\",\"No message\")}') for r in results]"
           fi
 
   # ============================================
@@ -108,16 +96,7 @@ for r in results:
       - name: Display Summary
         run: |
           if [ -f trivy_results.json ]; then
-            python3 -c "
-import json
-with open('trivy_results.json') as f:
-    data = json.load(f)
-total = 0
-for result in data.get('Results', []):
-    for vuln in result.get('Vulnerabilities', []):
-        total += 1
-print(f'Trivy found {total} vulnerabilities')
-"
+            python3 -c "import json; data=json.load(open('trivy_results.json')); total=sum(len(r.get('Vulnerabilities',[])) for r in data.get('Results',[])); print(f'Trivy found {total} vulnerabilities')"
           fi
 
   # ============================================

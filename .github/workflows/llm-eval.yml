@@ -73,23 +73,7 @@ jobs:
       - name: Check Results
         run: |
           if [ -f giskard_results.json ]; then
-            python3 -c "
-import json, sys
-with open('giskard_results.json') as f:
-    data = json.load(f)
-if data.get('skipped'):
-    print('SKIPPED: No API key configured')
-    sys.exit(0)
-summary = data.get('summary', {})
-total = summary.get('total', 0)
-failed = summary.get('failed', 0)
-print(f'Tests: {total} total, {failed} failed')
-if failed > 0:
-    print('FAILED: Some LLM vulnerability tests did not pass')
-    sys.exit(1)
-else:
-    print('PASSED: All LLM security tests passed')
-"
+            python3 -c "import json,sys; data=json.load(open('giskard_results.json')); sys.exit(0) if data.get('skipped') else None; summary=data.get('summary',{}); total=summary.get('total',0); failed=summary.get('failed',0); print(f'Tests: {total} total, {failed} failed'); sys.exit(1 if failed > 0 else 0)"
           fi
 
   # ============================================
