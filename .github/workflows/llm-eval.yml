@@ -137,13 +137,17 @@ jobs:
           path: artifacts/
 
       - name: Generate Report
+        env:
+          MODEL: ${{ github.event.inputs.model || 'default' }}
+          GISKARD_RESULT: ${{ needs.giskard-scan.result }}
+          PROMPTFOO_RESULT: ${{ needs.prompt-injection.result }}
         run: |
           mkdir -p report
-          cat > report/LLM_SECURITY_REPORT.md << 'EOF'
+          cat > report/LLM_SECURITY_REPORT.md <<EOF
 # LLM Security Evaluation Report
 
 **Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')
-**Model:** ${{ github.event.inputs.model || 'default' }}
+**Model:** $MODEL
 
 ---
 
@@ -151,8 +155,8 @@ jobs:
 
 | Test | Status | Details |
 |------|--------|---------|
-| Giskard Vulnerability Scan | ${{ needs.giskard-scan.result }} | See artifacts/giskard-results |
-| Prompt Injection Tests | ${{ needs.prompt-injection.result }} | See artifacts/promptfoo-results |
+| Giskard Vulnerability Scan | $GISKARD_RESULT | See artifacts/giskard-results |
+| Prompt Injection Tests | $PROMPTFOO_RESULT | See artifacts/promptfoo-results |
 
 ---
 

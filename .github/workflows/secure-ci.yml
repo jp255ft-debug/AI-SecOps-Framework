@@ -154,15 +154,23 @@ jobs:
           path: artifacts/
 
       - name: Generate Consolidated Report
+        env:
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT: ${{ github.sha }}
+          TRIGGER: ${{ github.event_name }}
+          SAST_RESULT: ${{ needs.sast.result }}
+          SCA_RESULT: ${{ needs.sca.result }}
+          SECRETS_RESULT: ${{ needs.secrets.result }}
         run: |
           mkdir -p report
-          cat > report/CI_SECURITY_REPORT.md << 'EOF'
+          cat > report/CI_SECURITY_REPORT.md <<EOF
 # CI Security Scan Report
 
-**Repository:** ${{ github.repository }}
-**Branch:** ${{ github.ref_name }}
-**Commit:** ${{ github.sha }}
-**Trigger:** ${{ github.event_name }}
+**Repository:** $REPO
+**Branch:** $BRANCH
+**Commit:** $COMMIT
+**Trigger:** $TRIGGER
 **Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')
 
 ---
@@ -171,9 +179,9 @@ jobs:
 
 | Job | Status | Details |
 |-----|--------|---------|
-| SAST (Semgrep) | ${{ needs.sast.result }} | See artifacts/semgrep-results |
-| SCA (Trivy) | ${{ needs.sca.result }} | See artifacts/trivy-results |
-| Secrets (Gitleaks) | ${{ needs.secrets.result }} | See artifacts/gitleaks-results |
+| SAST (Semgrep) | $SAST_RESULT | See artifacts/semgrep-results |
+| SCA (Trivy) | $SCA_RESULT | See artifacts/trivy-results |
+| Secrets (Gitleaks) | $SECRETS_RESULT | See artifacts/gitleaks-results |
 
 ---
 
