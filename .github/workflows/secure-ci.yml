@@ -163,6 +163,9 @@ jobs:
           SCA_RESULT: ${{ needs.sca.result }}
           SECRETS_RESULT: ${{ needs.secrets.result }}
         run: |
+          REPORT_DATE=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
+          SAST_FINDINGS=$(cat artifacts/semgrep-results/semgrep_results.json 2>/dev/null | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d.get('results',[])))" 2>/dev/null || echo "N/A")
+          VULN_COUNT=$(cat artifacts/trivy-results/trivy_results.json 2>/dev/null | python3 -c "import json,sys; d=json.load(sys.stdin); print(sum(len(r.get('Vulnerabilities',[])) for r in d.get('Results',[])))" 2>/dev/null || echo "N/A")
           mkdir -p report
           cat > report/CI_SECURITY_REPORT.md <<EOF
 # CI Security Scan Report
@@ -171,7 +174,7 @@ jobs:
 **Branch:** $BRANCH
 **Commit:** $COMMIT
 **Trigger:** $TRIGGER
-**Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+**Date:** $REPORT_DATE
 
 ---
 
@@ -187,8 +190,8 @@ jobs:
 
 ## Summary
 
-- **SAST Findings:** $(cat artifacts/semgrep-results/semgrep_results.json 2>/dev/null | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d.get('results',[])))" 2>/dev/null || echo "N/A")
-- **Vulnerabilities:** $(cat artifacts/trivy-results/trivy_results.json 2>/dev/null | python3 -c "import json,sys; d=json.load(sys.stdin); print(sum(len(r.get('Vulnerabilities',[])) for r in d.get('Results',[])))" 2>/dev/null || echo "N/A")
+- **SAST Findings:** $SAST_FINDINGS
+- **Vulnerabilities:** $VULN_COUNT
 
 ---
 

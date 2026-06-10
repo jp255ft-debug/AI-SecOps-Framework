@@ -142,11 +142,12 @@ jobs:
           GISKARD_RESULT: ${{ needs.giskard-scan.result }}
           PROMPTFOO_RESULT: ${{ needs.prompt-injection.result }}
         run: |
+          REPORT_DATE=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
           mkdir -p report
           cat > report/LLM_SECURITY_REPORT.md <<EOF
 # LLM Security Evaluation Report
 
-**Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+**Date:** $REPORT_DATE
 **Model:** $MODEL
 
 ---
