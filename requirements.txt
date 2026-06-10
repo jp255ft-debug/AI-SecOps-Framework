@@ -1,15 +1,16 @@
 # AI-SecOps-Framework - Python Dependencies
 # Core Security Scanning
 semgrep>=1.60.0
-trivy>=0.50.0
+# trivy is a binary tool, not a pip package - install via: https://github.com/aquasecurity/trivy
 
 # LLM Security Testing
-giskard>=2.0.0
+# giskard requires Python <3.12 - install via: pip install giskard (Python 3.10-3.11 only)
 langchain>=0.1.0
 openai>=1.0.0
 
 # Guardrails & Safety
-nemoguardrails>=0.5.0
+# nemoguardrails requires MSVC++ Build Tools on Windows (dependency: annoy)
+# Install via: pip install nemoguardrails (requires C++ compiler)
 
 # Utilities
 pyyaml>=6.0
@@ -26,4 +27,4 @@ cyclonedx-bom>=4.0.0
 spdx-tools>=0.8.0
 
 # Fuzzing (optional)
-atheris>=2.3.0
+# atheris requires libFuzzer - Linux only. Install via: pip install atheris

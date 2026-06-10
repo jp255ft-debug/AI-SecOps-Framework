@@ -84,6 +84,9 @@ temp/
 *.tmp
 *.bak
 *.swp
+pip-log.txt
+pip-delete-this-directory.txt
+*.pip-log
 
 # ============================================
 # Docker

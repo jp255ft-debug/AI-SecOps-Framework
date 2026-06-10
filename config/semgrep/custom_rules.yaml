@@ -54,10 +54,6 @@ rules:
   # ============================================
   - id: llm-insecure-output-exec
     patterns:
-      - pattern: |
-          $RESULT = $LLM.$METHOD(...)
-      - pattern-not: |
-          $RESULT = $LLM.$METHOD(...)
       - pattern-either:
           - pattern: |
               exec($RESULT)
@@ -67,6 +63,9 @@ rules:
               subprocess.run($RESULT, ...)
           - pattern: |
               os.system($RESULT)
+      - metavariable-pattern:
+          metavariable: $RESULT
+          pattern: $LLM.$METHOD(...)
     message: >
       LLM output is being executed directly without sanitization.
       This can lead to remote code execution (RCE) if the LLM output is malicious.
@@ -157,17 +156,21 @@ rules:
   # ============================================
   - id: llm-supply-chain-unpinned-dep
     patterns:
-      - pattern: |
-          pip install $PACKAGE
+      - pattern-either:
+          - pattern: |
+              pip install $PACKAGE
+          - pattern: |
+              RUN pip install $PACKAGE
       - pattern-not: |
           pip install $PACKAGE==$VERSION
+      - pattern-not: |
+          RUN pip install $PACKAGE==$VERSION
     message: >
       Python package is installed without pinning the version.
       This can lead to supply chain attacks via dependency confusion.
       Always pin package versions in requirements.txt.
     severity: MEDIUM
     languages:
-      - python
       - dockerfile
     metadata:
       cwe: "CWE-1104: Use of Unmaintained Third-Party Components"
