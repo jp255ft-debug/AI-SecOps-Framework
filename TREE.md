@@ -13,7 +13,7 @@ AI-SecOps-Framework/
 │   │   ├── lint.yml               # Linting (Ruff + Black + MyPy)
 │   │   ├── test.yml               # Testes unitários + integração
 │   │   ├── secure-ci.yml          # Pipeline de segurança (SAST, SCA, Secrets)
-│   │   ├── llm-eval.yml           # Avaliação de LLM (Giskard + Promptfoo)
+│   │   ├── .llm-eval.yml.disabled # Avaliação de LLM (desabilitado temporariamente)
 │   │   ├── sbom-release.yml       # Geração de SBOM + assinatura Sigstore
 │   │   └── fuzz.yml               # Fuzzing contínuo (Atheris)
 │   ├── SECURITY.md                # Política de segurança
