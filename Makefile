@@ -2,13 +2,14 @@
 # Build and automation targets for DevSecOps auditing
 # Usage: make [target]
 
-.PHONY: help install audit report clean setup-env test-prompts docker-build sbom threat-model fuzz otel-up otel-down sign-verify
+.PHONY: help install audit report clean setup-env test-prompts docker-build sbom threat-model fuzz otel-up otel-down sign-verify setup-tools
 
 help:
 	@echo "AI-SecOps-Framework - Available Targets"
 	@echo "========================================"
 	@echo "make install       Install all dependencies (Python + tools)"
 	@echo "make setup-env     Setup environment (directories, hooks)"
+	@echo "make setup-tools   Install external tools (promptfoo, ollama, zstd)"
 	@echo "make audit         Run full 60-minute security audit"
 	@echo "make report        Show latest audit report"
 	@echo "make test-prompts  Run prompt injection tests"
@@ -27,6 +28,12 @@ install:
 setup-env:
 	@echo "Setting up environment..."
 	bash scripts/setup_env.sh
+	@echo "Done."
+
+# Setup external tools (promptfoo, ollama, zstd)
+setup-tools:
+	@echo "Setting up external tools..."
+	bash scripts/setup_tools.sh
 	@echo "Done."
 
 # Run full audit

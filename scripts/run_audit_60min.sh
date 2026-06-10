@@ -1,7 +1,7 @@
 #!/bin/bash
 # run_audit_60min.sh - AI-SecOps-Framework
 # 60-minute full security audit for LLM/ML infrastructures
-# Usage: bash scripts/run_audit_60min.sh [--output-dir DIR] [--target PATH]
+# Usage: bash scripts/run_audit_60min.sh [--output-dir DIR] [--target PATH|URL]
 set -euo pipefail
 
 # ============================================
@@ -17,12 +17,17 @@ TARGET_DIR="${PROJECT_DIR}"
 while [[ $# -gt 0 ]]; do
     case $1 in
         --help|-h)
-            echo "Usage: $0 [--output-dir DIR] [--target PATH]"
+            echo "Usage: $0 [--output-dir DIR] [--target PATH|URL]"
             echo ""
             echo "Options:"
             echo "  --output-dir DIR   Output directory for audit results (default: audits/outputs/<timestamp>)"
-            echo "  --target PATH      Target directory to audit (default: project root)"
+            echo "  --target PATH|URL  Target directory or git URL to audit (default: project root)"
+            echo "                     If a URL is provided, the repo is cloned automatically."
             echo "  --help, -h         Show this help message"
+            echo ""
+            echo "Examples:"
+            echo "  $0 --target /path/to/repo"
+            echo "  $0 --target https://github.com/user/repo.git"
             exit 0
             ;;
         --output-dir)
@@ -35,11 +40,26 @@ while [[ $# -gt 0 ]]; do
             ;;
         *)
             echo "Unknown: $1"
-            echo "Usage: $0 [--output-dir DIR] [--target PATH]"
+            echo "Usage: $0 [--output-dir DIR] [--target PATH|URL]"
             exit 1
             ;;
     esac
 done
+
+# ============================================
+# Auto-clone if target is a URL
+# ============================================
+if [[ "$TARGET_DIR" =~ ^https?:// ]]; then
+    CLONE_DIR="${PROJECT_DIR}/audits/outputs/${TIMESTAMP}/target"
+    log_info "Target is a URL. Cloning into ${CLONE_DIR}..."
+    mkdir -p "$(dirname "$CLONE_DIR")"
+    git clone --depth 1 "$TARGET_DIR" "$CLONE_DIR" 2>&1 || {
+        log_fail "Failed to clone repository: $TARGET_DIR"
+        exit 1
+    }
+    TARGET_DIR="$CLONE_DIR"
+    log_ok "Repository cloned successfully."
+fi
 
 # Colors
 RED='\033[0;31m'
