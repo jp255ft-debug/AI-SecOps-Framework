@@ -50,7 +50,7 @@ jobs:
                   . || true
 
       - name: Upload Semgrep Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: semgrep-results
           path: semgrep_results.json
@@ -88,7 +88,7 @@ jobs:
           severity: 'CRITICAL,HIGH'
 
       - name: Upload Trivy Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: trivy-results
           path: trivy_results.json
@@ -199,7 +199,7 @@ jobs:
           } > report/CI_SECURITY_REPORT.md
 
       - name: Upload Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: security-report
           path: report/CI_SECURITY_REPORT.md
