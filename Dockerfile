@@ -3,7 +3,7 @@
 # Build: docker build -t ai-secops-framework:latest .
 # Run:   docker run --rm -v $(pwd):/workspace ai-secops-framework:latest
 
-FROM python:3.11-slim AS base
+FROM python:3.14-slim AS base
 
 # ============================================
 # Stage 1: Base image with system dependencies
